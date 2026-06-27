@@ -1,0 +1,27 @@
+# Local development only: SQLite + Django runserver on port 18765.
+# From repo root: docker compose -f docker/docker-compose.yml up --build
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    working_dir: /app
+    ports:
+      - "18765:18765"
+    volumes:
+      - ..:/app
+      - sqlite_data:/data
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "dev-docker-change-me"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0"
+      DATABASE_ENGINE: django.db.backends.sqlite3
+      DB_NAME: /data/db.sqlite3
+      DJANGO_SETTINGS_MODULE: config.settings
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:18765"
+
+volumes:
+  sqlite_data:

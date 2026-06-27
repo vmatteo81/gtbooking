@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Sessione — {{ session_obj.course.name }}{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-2 gt-heading">{{ session_obj.course.name }}</h1>
+  <p class="text-muted">
+    {{ session_obj.starts_at|date:"l d F Y H:i" }} — {{ session_obj.gym.name }}
+    · Prenotati: {{ confirmed_count }} / {{ capacity }}
+  </p>
+  <p><a class="btn btn-sm btn-outline-success" href="{% url 'dashboard:session_list' %}">Indietro</a></p>
+
+  <h2 class="h5 mt-4 gt-heading">Partecipanti</h2>
+  <div class="table-responsive rounded-3 border border-success border-opacity-25 overflow-hidden">
+    <table class="table table-sm table-gt mb-0">
+      <thead>
+        <tr>
+          <th>Utente</th>
+          <th>Stato</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+          <tr>
+            <td>{{ b.user.username }}</td>
+            <td>{{ b.get_status_display }}</td>
+            <td>
+              {% if b.status == "CONFIRMED" %}
+                <form method="post" action="{% url 'dashboard:mark_no_show' session_obj.pk b.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-warning">No-show</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3" class="text-muted">Nessun partecipante.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

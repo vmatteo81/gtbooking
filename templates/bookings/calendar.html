@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Calendario — {{ current_gym.name }}{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-3 gt-heading">{{ current_gym.name }} — Sessioni</h1>
+  <p class="d-flex flex-wrap gap-2">
+    <a class="btn btn-outline-success btn-sm" href="{% url 'bookings:my_bookings' gym_slug %}">Le mie prenotazioni</a>
+    <a class="btn btn-outline-success btn-sm" href="{% url 'core:home' %}">Home</a>
+  </p>
+
+  {% if wrong_gym %}
+    <div class="alert alert-warning">Il tuo account è associato a un'altra palestra. Non puoi prenotare qui.</div>
+  {% elif not user.is_authenticated %}
+    <div class="alert alert-info">Accedi o registrati per prenotare.</div>
+  {% endif %}
+
+  {% regroup sessions by starts_at.date as by_day %}
+  {% for day in by_day %}
+    <h2 class="h5 mt-4 gt-heading">{{ day.grouper|date:"l d F Y" }}</h2>
+    <div class="list-group list-group-flush rounded-3 overflow-hidden shadow-sm">
+      {% for s in day.list %}
+        <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <strong>{{ s.course.name }}</strong>
+            <span class="text-muted">{{ s.starts_at|time:"H:i" }}–{{ s.ends_at|time:"H:i" }}</span>
+            <br>
+            <small class="text-muted">
+              Capienza: {{ s.confirmed_count }} / {{ s.effective_capacity }}
+              · {{ s.course.get_level_display }}
+              {% if s.course.instructor_name %}· {{ s.course.instructor_name }}{% endif %}
+            </small>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            {% if user.is_authenticated and not wrong_gym %}
+              {% if s.user_booking %}
+                {% if s.user_booking.status == "CONFIRMED" %}
+                  <span class="badge text-bg-success">Prenotato</span>
+                {% elif s.user_booking.status == "WAITLIST" %}
+                  <span class="badge text-bg-warning text-dark">In lista</span>
+                {% elif s.user_booking.status == "CANCELLED" or s.user_booking.status == "NO_SHOW" %}
+                  <form method="post" action="{% url 'bookings:book_session' gym_slug s.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-primary">Prenota</button>
+                  </form>
+                {% endif %}
+              {% else %}
+                <form method="post" action="{% url 'bookings:book_session' gym_slug s.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-primary">Prenota</button>
+                </form>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% empty %}
+    <p class="text-muted">Nessuna sessione programmata.</p>
+  {% endfor %}
+{% endblock %}

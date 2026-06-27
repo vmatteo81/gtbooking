@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Home — GT Booking{% endblock %}
+{% block content %}
+  <h1 class="mb-3 gt-heading">Prenotazioni corsi</h1>
+  <p class="lead gt-lead">Seleziona una palestra per vedere il calendario o accedi con il tuo account.</p>
+
+  <h2 class="h4 mt-4 gt-heading">Palestre</h2>
+  {% if gyms %}
+    <ul class="list-group list-group-flush rounded-3 overflow-hidden shadow-sm">
+      {% for gym in gyms %}
+        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+          <span class="fw-semibold">{{ gym.name }}</span>
+          <a class="btn btn-sm btn-primary" href="{% url 'bookings:client_calendar' gym.slug %}">Calendario</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">Nessuna palestra configurata.</p>
+  {% endif %}
+{% endblock %}

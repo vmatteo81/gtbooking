@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Le mie prenotazioni — {{ current_gym.name }}{% endblock %}
+{% block content %}
+  <h1 class="h3 mb-3 gt-heading">Le mie prenotazioni</h1>
+  <p>
+    <a class="btn btn-outline-success btn-sm" href="{% url 'bookings:client_calendar' gym_slug %}">Calendario</a>
+  </p>
+
+  {% if bookings %}
+    <div class="list-group list-group-flush rounded-3 overflow-hidden shadow-sm">
+      {% for b in bookings %}
+        <div class="list-group-item d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <strong>{{ b.session.course.name }}</strong>
+            <div class="text-muted small">
+              {{ b.session.starts_at|date:"l d F Y H:i" }}
+              {% if b.status == "CONFIRMED" %}
+                <span class="badge text-bg-success ms-1">Confermata</span>
+              {% else %}
+                <span class="badge text-bg-warning text-dark ms-1">Lista d'attesa</span>
+              {% endif %}
+            </div>
+          </div>
+          <form method="post" action="{% url 'bookings:cancel_booking' gym_slug b.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger">Cancella</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">Nessuna prenotazione attiva.</p>
+  {% endif %}
+{% endblock %}
